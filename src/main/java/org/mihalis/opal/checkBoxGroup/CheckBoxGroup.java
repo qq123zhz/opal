@@ -294,6 +294,9 @@ public class CheckBoxGroup extends Canvas implements PaintListener {
 
 		gc.setForeground(this.getDisplay().getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW));
 		gc.drawRoundRectangle(2, startY + 1, rect.width - 4, rect.height - startY - 4, 2, 2);
+		
+		// no strikethrough button text
+		gc.fillRectangle(button.getBounds());
 	}
 
 }
