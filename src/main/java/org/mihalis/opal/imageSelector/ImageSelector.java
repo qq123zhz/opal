@@ -123,18 +123,28 @@ public class ImageSelector extends Canvas {
 		addListener(SWT.Resize, new Listener() {
 			@Override
 			public void handleEvent(final Event event) {
-				if (cachedGC == null) {
-					return;
-				}
-				cachedGC.dispose();
-				cachedImage.dispose();
-				cachedImage = new Image(getDisplay(), getClientArea());
-				cachedGC = new GC(cachedImage);
-				cachedGC.setAntialias(SWT.ON);
+				resize();
 			}
 		});
 	}
+	
+	protected void resize() {
+	    if (cachedGC == null) {
+            return;
+        }
+        cachedGC.dispose();
+        cachedImage.dispose();
+        cachedImage = new Image(getDisplay(), getClientArea());
+        cachedGC = new GC(cachedImage);
+        cachedGC.setAntialias(SWT.ON);
+	}
 
+	@Override
+	public void redraw() {
+	    resize();
+	    super.redraw();
+	}
+	
 	/**
 	 * Add the key listener
 	 */
@@ -267,7 +277,6 @@ public class ImageSelector extends Canvas {
 	 * @param e the paintEvent
 	 */
 	private void paintControl(final PaintEvent e) {
-
 		if (cachedImage == null) {
 			cachedImage = new Image(getDisplay(), getClientArea());
 			cachedGC = new GC(cachedImage);
@@ -397,6 +406,9 @@ public class ImageSelector extends Canvas {
 	 * @param gc graphical context
 	 */
 	private void drawTitle() {
+        if (index < 0 || index >= originalItems.size()) {
+            return;
+        }
 		final String title = originalItems.get(index).getText();
 		if (title == null || title.trim().equals("")) {
 			return;
@@ -438,10 +450,9 @@ public class ImageSelector extends Canvas {
 	 * @param increment increment value
 	 */
 	private void scrollAndAnimateBy(final int increment) {
-		if (increment == 0 || index == 0 && increment < 0 || index == items.size() - 1 && increment > 0) {
+		if (increment == 0 || (index <= 0 && increment < 0) || (index >= items.size() - 1 && increment > 0)) {
 			return;
 		}
-
 		final double step = Math.abs(increment) / (300d / TIMER_INTERVAL);
 		ImageSelector.this.animationStep = step;
 		setCursor(getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
@@ -456,6 +467,9 @@ public class ImageSelector extends Canvas {
 			private void startAnimation(final int increment, final double step) {
 				items.clear();
 				items.addAll(originalItems);
+				if(index < 0) index = 0;
+				if(index >= items.size()) index = items.size() - 1;
+
 				for (int i = 0; i < items.size(); i++) {
 					final ISItem item = items.get(i);
 					item.setzPosition((i - index + animationStep * (increment > 0 ? -1d : 1d)) * spacing);
